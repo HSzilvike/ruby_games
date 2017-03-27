@@ -35,22 +35,29 @@ def feedback(choice, guess)
     $gameover = FALSE
   end
   
+  fb_detailed = []
+  
   i=0
   4.times do |i|
     if (guess[i] == choice[i])
       matching_position +=1
+      fb_detailed[i] = "yep!"
     end
     
     if choice.include?(guess[i])
     matching_colors+=1
+    (fb_detailed[i] != "yep!") ? fb_detailed[i] = "color" : nil
     end
+    
+   fb_detailed[i] ||= "nope"
   
     i+=1
   end
   
   puts "Number of matching colors: #{matching_colors}."
   puts "Number of matching positions: #{matching_position}."
-  #puts "For debugging: the choice is #{choice}."
+  #puts "For debugging: choice #{choice}."
+  puts "The feedback: #{fb_detailed}"
 end
 
 
@@ -64,7 +71,7 @@ def game
   break if $gameover
   end
   
-puts "You lose! The solution is #{$choice}. Try again!"
+($gameover == FALSE) ? (puts "You lose! The solution is #{$choice}. Try again!") : nil
   
 end
 
