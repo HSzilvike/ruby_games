@@ -1,156 +1,95 @@
 class Game
-
-  def initialize
-  $player1 = Player.new("Player 1", "X")
-  $player2 = Player.new("Player 2", "O")
-  
-  @@a = [1,2,3]
-  @@b = [4,5,6]
-  @@c = [7,8,9]
+  attr_reader :board
+  def initialize(name1, name2)
+    @players =[Player.new(name1, "X", self), ComputerPlayer.new(name2, "O", self)]
+    @current_player, @other_player = @players.shuffle
+    @board = (0..9).to_a
   end
-
-def self.show_board
-  p @@a.join("  ")
-  p @@b.join("  ")
-  p @@c.join("  ")
-
-end
-
-def self.decisionmaking
   
-      validround = false
-    while !validround do
-      decision = gets.chomp.to_i
-      if (((1..3).include? decision) && (@@a[(decision-1)].is_a? Integer))
-      @@a[(decision-1)] = $currentsign
-      validround = TRUE
-      elsif (((4..6).include? decision) && (@@b[(decision-4)].is_a? Integer))
-      @@b[(decision-4)] = $currentsign
-      validround = TRUE
-      elsif (((7..9).include? decision) && (@@c[(decision-7)].is_a? Integer))
-      @@c[(decision-7)] = $currentsign
-      validround = TRUE
+  def play
+    show_board
+    
+    loop do
+      puts "It is your turn #{@current_player.name} (#{@current_player.marker})! Choose a position!"
+      update_board!
+      if won?
+        puts "#{@current_player.name} you win!"
+        return show_board
+      elsif tie?
+        puts "The board is full! It's a draw!"
+        return show_board
+      end
+      
+      switch_player!
+    end
+  end
+  
+  def switch_player!
+    @current_player, @other_player = @other_player, @current_player
+  end
+  
+  def show_board
+    puts @board[1..3].join ("    ")
+    puts @board[4..6].join ("    ")
+    puts @board[7..9].join ("    ")
+  end
+  
+  def update_board!
+    loop do
+      choice = @current_player.choose_position
+      if free_cell?(choice) 
+        @board[choice] = @current_player.marker
+        return show_board
       else
-       puts "Don't try to cheat!! Choose one of the displayed numbers!"
+        puts "This cell is not free! Choose a different one!"
       end
     end
-    
-      
-      Game.show_board
-      Game.gameover?
-    
-  end
-
-  def self.nextround(whichplayer)
-    
-    puts "It's #{whichplayer.name}'s turn!"
-    $currentsign = whichplayer.sign
-    Game.decisionmaking
-    
-  end
-
-
-  def self.flow
-  $gameflow = TRUE
-    
-  while $gameflow do
-  Game.nextround($player1)
-  $gameflow ? Game.nextround($player2) : break
-  end
-
   end
   
-  
-  def self.someonewon
-    case
-    when ([@@a[0],@@a[1],@@a[2]].uniq.length == 1)
-      winnersign = [@@a[0],@@a[1],@@a[2]].uniq
-    when ([@@b[0],@@b[1],@@b[2]].uniq.length == 1)
-      winnersign = [@@b[0],@@b[1],@@b[2]].uniq
-    when ([@@c[0],@@c[1],@@c[2]].uniq.length == 1)
-      winnersign = [@@c[0],@@c[1],@@c[2]].uniq
-      
-    when ([@@a[0],@@b[0],@@c[0]].uniq.length == 1)  
-      winnersign = [@@a[0],@@b[0],@@c[0]].uniq
-    when ([@@a[1],@@b[1],@@c[1]].uniq.length == 1)
-      winnersign = [@@a[1],@@b[1],@@c[1]].uniq
-    when ([@@a[2],@@b[2],@@c[2]].uniq.length == 1)
-      winnersign = [@@a[2],@@b[2],@@c[2]].uniq
-   
-    when ([@@a[0],@@b[1],@@c[2]].uniq.length == 1) 
-      winnersign = [@@a[0],@@b[1],@@c[2]].uniq
-    when ([@@a[2],@@b[1],@@c[0]].uniq.length == 1)  
-      winnersign = [@@a[2],@@b[1],@@c[0]].uniq
-  else
-        
-    end
-      
-    if winnersign == ["X"]
-      $player1.winner = TRUE 
-    elsif winnersign == ["O"]
-      $player2.winner = TRUE
-    else
-    end
-  
-  
+  def free_cell?(position)
+    @board[position].is_a? Integer
   end
   
-  def self.gameover?
-    
-  Game.someonewon
-    
-  if ($player1.winner)
-    puts "Congratulations! #{$player1.name} is the winner!"
-    $gameflow = false
-    return true
-  elsif ($player2.winner)
-    puts "Congratulations! #{$player2.name} is the winner!"
-    $gameflow = false
-    return true
-  else
+  def free_cells
+   (1..9).select { |i| free_cell?(i) }
   end
   
+  def tie?
+    free_cells == []
+  end
   
-  if ((@@a+@@b+@@c).none? {|n| n.is_a? Integer})
-        $gameflow = false
-        puts "No winner! Try again!"
-        return true
-     else
-     end
-  
-    
-  end 
-  
+  def won?
+    winning_positions = [[1,2,3], [4,5,6], [7,8,9], [1,4,7], [2,5,8], [3,6,9], [1,5,9], [3,5,7]]
+    (0..7).any? { |n| winning_positions[n].all? { |i| @board[i] == @current_player.marker } }
+  end
 end
+
 
 class Player
-  
-  attr_reader :name
-  attr_reader :sign
-  attr_accessor :winner
-  
-   def initialize(name, sign)
+  attr_reader :name, :marker
+  def initialize(name, marker, game)
     @name = name
-    @sign = sign
-    @winner = FALSE
-    puts "#{name} (sign #{sign}) is ready to play!"
+    @marker = marker
+    @game = game
   end
   
+  def choose_position
+    choice = gets.chomp!.to_i
+  end
 end
 
-
-
-#puts "Type start_game to play!"
-
-
-def start_game
-  puts "Let's play Tic-Tac-Toe!"
-  Game.new
-  puts "Choose one of the displayed numbers to make your decision!"
-  Game.show_board
-  Game.flow
- 
+class ComputerPlayer < Player
+  def choose_position
+   @game.free_cells.sample
+  end
 end
 
+Game.new("Muci", "TicTacBot").play
 
-start_game
+
+
+
+
+
+
+
