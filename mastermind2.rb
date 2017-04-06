@@ -96,7 +96,7 @@ class Board
   
   def play
     get_code
-    p @secretcode # ezt majd ki kell törölni !!!!
+    #p @secretcode  UNCOMMENT FOR DEBUGGING
     
     while true
       puts "Turn #{@num_round}/5"
