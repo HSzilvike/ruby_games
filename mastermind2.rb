@@ -87,10 +87,35 @@ class ComputerPlayer < Player
   end
   
   def evaluate_feedback
-    newguess = []
-    (0..3).each do |i|
-    (@board.feedback[i] == "2") ? newguess.push(@board.guess[i]) : newguess.push(random_guess(1).join)
+    newguess = Array.new(4)
+    possible = []
+    
+    @board.feedback.each_with_index do |item, index| 
+      if item == "2" 
+      newguess[index] = @board.guess[index] #keep matching ones
+      elsif item == "1"
+      possible.push(@board.guess[index])
+      end
     end
+    
+    possible.uniq!
+    possible -= newguess
+    possible.shuffle!
+    p=0
+    (0..3).each {|i| newguess[i].nil? ? ((newguess[i] = possible[p]) ; p+=1) : next }
+    
+    #fill remaining spots randomly
+    newguess.each_with_index do |item, index|
+      
+      if item.nil?
+        a = random_guess(1).join
+        redo if a == @board.guess[index]
+        newguess[index] = a
+      else
+        next
+      end
+    end
+    
     newguess
   end
   
