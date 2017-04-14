@@ -35,10 +35,24 @@ class Game
   def initialize(player_name)
     @player = Player.new(player_name, self)
     @guess = ""
-    @secret_word = "cuncimokuska"   #TODO : this needs to be chosen randomly, downcase
+    @secret_word = ""
     @correct_letters = [" "]
     @incorrect_letters = []
     @turns_left = 10
+  end
+
+  def generate_secret_word
+    #secret word will be chosen randomly
+    words = File.read("5desk.txt").split()
+    suitable_words = []
+
+    words.each do |word|
+      if ((word.size < 13) && (word.size > 4))
+        suitable_words << word
+      end
+    end
+
+    @secret_word = suitable_words.sample.downcase
   end
   
   def get_guess
@@ -70,7 +84,8 @@ class Game
   
   def game_over?
     if @turns_left < 1 
-      puts "You are out of turns! Game over!"
+      draw_stickfigure
+      puts "You are out of turns! The secret word was #{@secret_word}. Game over!"
       return true
     end
     
@@ -79,13 +94,113 @@ class Game
       return true
     end
   end
+
+  def draw_stickfigure
+    turns = @turns_left
+    case turns
+    when 9
+      puts "        "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts " //\\\\         "
+    when 8
+      puts "        "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts " //\\\\         "
+    when 7
+      puts "   ________     "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts " //\\\\         "
+    when 6
+      puts "   ________     "
+      puts "  |        |     "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts " //\\\\         "
+    when 5
+      puts "   ________     "
+      puts "  |        |     "
+      puts "  |        O     "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts "  |             "
+      puts " //\\\\         "
+    when 4
+      puts "   ________     "
+      puts "  |        |     "
+      puts "  |        O     "
+      puts "  |        |     "
+      puts "  |        |    "
+      puts "  |             "
+      puts "  |             "
+      puts " //\\\\         "
+    when 3
+      puts "   ________     "
+      puts "  |        |     "
+      puts "  |        O     "
+      puts "  |       \\|     "
+      puts "  |        |    "
+      puts "  |             "
+      puts "  |             "
+      puts " //\\\\         "
+    when 2
+      puts "   ________     "
+      puts "  |        |     "
+      puts "  |        O     "
+      puts "  |       \\|/     "
+      puts "  |        |    "
+      puts "  |             "
+      puts "  |             "
+      puts " //\\\\         "
+    when 1
+      puts "   ________     "
+      puts "  |        |     "
+      puts "  |        O     "
+      puts "  |       \\|/     "
+      puts "  |        |    "
+      puts "  |       /      "
+      puts "  |             "
+      puts " //\\\\         "
+    when 0
+      puts "   ________     "
+      puts "  |        |     "
+      puts "  |        O     "
+      puts "  |       \\|/     "
+      puts "  |        |    "
+      puts "  |       / \\     "
+      puts "  |             "
+      puts " //\\\\         "
+    end
+  
+  end
+
   
   def play
     puts "#{@player.name}, try to guess this word:"
+    generate_secret_word
     display_word(@correct_letters)
     
     while !game_over?
       puts "\nYou have #{@turns_left} incorrect guesses left!"
+      draw_stickfigure
       (puts "Reminder: these letters are incorrect: #{@incorrect_letters.join(",")}") if @incorrect_letters.length > 0
       get_guess
       choice_of_paths
