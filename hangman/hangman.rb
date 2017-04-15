@@ -1,21 +1,46 @@
+require "yaml"
+
 class Player
   attr_reader :name
   
-  def initialize(name, game)
-    @name = name
+  def initialize(game)
+    @name = get_name
     @game = game
+  end
+
+  def get_name
+    puts "Please enter your name:"
+    name = gets.chomp
   end
   
   def make_guess
-    puts "Type in a letter a-z"
+    puts "Type in a letter a-z. Enter '5' if you want to save the game and quit."
     while true
       guess = gets.chomp.downcase
+      (return "save"; break) if (guess == "5")
       (puts "Type only one letter. Try again!"; redo) if !correct_input?(guess)
       (puts "You've already made this guess. Try a different letter!"; redo) if not_new_letter?(guess)
       break
     end
     puts "\nYour guess is the letter #{guess}."
     guess
+  end
+
+  def save?
+    loop do
+      puts "Press 'S' if you want to save the game and quit. Press 'C' to continue playing."
+      input = gets.chomp.downcase
+      if input == "s"
+        return true
+        break
+      elsif input == "c"
+        return false
+        break
+      else
+        puts "Invalid option, please enter S or C."
+      end
+    end
+
   end
   
   private
@@ -30,15 +55,29 @@ class Player
   end
 end
 
+
 class Game
   attr_reader :correct_letters, :incorrect_letters
-  def initialize(player_name)
-    @player = Player.new(player_name, self)
+  def initialize
+    @player = Player.new(self)
     @guess = ""
-    @secret_word = ""
+    @secret_word = generate_secret_word
     @correct_letters = [" "]
     @incorrect_letters = []
     @turns_left = 10
+    saves_directory
+  end
+
+  def menu
+    system 'clear'
+    puts "Hi #{@player.name}! Welcome to the Hangman Game!"
+    #TODO : enter 1 for new game, 2 for load game
+    play
+  end
+
+  def saves_directory
+    dirname = "hangman_saves"
+    Dir.mkdir(dirname) unless File.exists?(dirname)
   end
 
   def generate_secret_word
@@ -52,12 +91,9 @@ class Game
       end
     end
 
-    @secret_word = suitable_words.sample.downcase
+    suitable_words.sample.downcase
   end
-  
-  def get_guess
-    @guess = @player.make_guess
-  end
+
   
   def evaluate_guess(letter)
     #return either correct or incorrect
@@ -90,6 +126,7 @@ class Game
     end
     
     if @secret_word.split("").uniq.length == @correct_letters.length-1
+      draw_stickfigure
       puts "Yay! #{@player.name}, you guessed the word!"
       return true
     end
@@ -98,6 +135,15 @@ class Game
   def draw_stickfigure
     turns = @turns_left
     case turns
+    when 10
+      puts "        "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts "               "
+      puts "               "
     when 9
       puts "        "
       puts "               "
@@ -192,23 +238,44 @@ class Game
   
   end
 
+  def save_or_continue
+    userinput = @player.make_guess
+    userinput == "save" ? (save_game; exit) : @guess = userinput
+  end
+
+  def save_game
+    serialized_object = YAML::dump(self)
+    puts "Enter a file name:"
+    filename = gets.chomp.downcase
+    saved_game = File.open("hangman_saves/#{filename}.yml","w")
+    saved_game.puts(serialized_object)
+    saved_game.close
+
+    puts "Saving the game..."
+    3.times do
+      sleep(1)
+      print "."
+    end
+    puts "\n"
+  end
+
   
   def play
     puts "#{@player.name}, try to guess this word:"
-    generate_secret_word
+    
     display_word(@correct_letters)
     
     while !game_over?
       puts "\nYou have #{@turns_left} incorrect guesses left!"
       draw_stickfigure
       (puts "Reminder: these letters are incorrect: #{@incorrect_letters.join(",")}") if @incorrect_letters.length > 0
-      get_guess
+      save_or_continue
+      system 'clear'
       choice_of_paths
       display_word(@correct_letters)
     end
   end
 end
 
-puts "Welcome to the Hangman Game! What's you name?"
-username = gets.chomp
-Game.new(username).play
+
+Game.new.menu
