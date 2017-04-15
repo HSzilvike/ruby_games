@@ -70,9 +70,56 @@ class Game
 
   def menu
     system 'clear'
-    puts "Hi #{@player.name}! Welcome to the Hangman Game!"
-    #TODO : enter 1 for new game, 2 for load game
-    play
+    puts "Hi #{@player.name}! Welcome to the Hangman Game!\n"
+    puts "Would you like to...\n"
+    puts "1. Start a new game"
+    puts "2. Load a previous game\n"
+
+    input = gets.chomp
+
+    if input == "1"
+      play
+    elsif input == "2"
+      load_game
+    else
+      puts "Please choose 1 or 2."
+    end    
+  end
+
+  def load_game
+    dirname = "hangman_saves"
+    if Dir.glob(dirname+"/*").length > 0
+      puts "Which game do you want to load?"
+      puts Dir.glob("hangman_saves/*.yml").join("\n")
+      choose_game_to_load
+    else
+      puts "No saved games! Starting a new game..."
+      sleep(2)
+      system 'clear'
+      play
+    end   
+  end
+
+  def choose_game_to_load
+    puts "Type in the name of the file, e.g. for 'sample.yml' type 'sample'. Type 'new' to start a new game."
+    loop do 
+      filename = gets.chomp
+      file = "hangman_saves/"+filename+".yml"
+      if File.exists?(file)
+        loaded_game = YAML::load(File.read(file))
+        system 'clear'
+        loaded_game.play
+        break
+      elsif filename == "new"
+        puts "Starting a new game..."
+        sleep(2)
+        system 'clear'
+        play
+        break
+      else
+        puts "Invalid entry. Choose a file or type 'new'."
+      end
+    end
   end
 
   def saves_directory
